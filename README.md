@@ -23,9 +23,12 @@ Giao diện được tối ưu theo phong cách **Material Design**, phù hợp 
 <!-- 🖼️ Chèn hình HomePage, AddTodoPage, EditTodoPage tại đây -->
 Ví dụ:
 
-![Home Page](images/home_page.jpg)
-![Add Todo Page](images/add_page.jpg)
-![Edit Todo Page](images/edit_page.jpg)
+<p align="center">
+  <img src="images/home_page.jpg" alt="Home Page" width="30%">
+  <img src="images/add_page.jpg" alt="Add Todo Page" width="30%">
+  <img src="images/edit_page.jpg" alt="Edit Todo Page" width="30%">
+</p>
+
 
 ---
 
