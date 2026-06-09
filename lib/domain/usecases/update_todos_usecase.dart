@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../core/error/failure.dart';
+import '../entities/todo_entity.dart';
 import '../repositories/todo_repository.dart';
 
 class UpdateTodosUsecase {
@@ -7,16 +8,12 @@ class UpdateTodosUsecase {
 
   UpdateTodosUsecase(this.repository);
 
-  Future<Either<Failure, void>> call(int id, String newTitle) async {
-    //Nhận nhiệm vụ update nội dung của một todo được chỉ định id sẵn với nội dung mới được truyền vào (newTitle).
+  Future<Either<Failure, void>> call(TodoEntity todo) async {
     print('🔵 USECASE: UpdateTodosUsecase → gọi Repository');
     try {
-      await repository.updateTodo(
-        id,
-        newTitle,
-      ); //Gọi repository interface để thực hiện updateTodo.
+      await repository.updateTodo(todo);
       print(
-        '🔵 USECASE: UpdateTodosUsecase → cập nhật thành công id=$id → "$newTitle"',
+        '🔵 USECASE: UpdateTodosUsecase → cập nhật thành công id=${todo.id}',
       );
       return const Right(null);
     } catch (e) {

@@ -1,7 +1,9 @@
 import '../../domain/entities/todo_entity.dart';
+import '../../domain/entities/todo_list_entity.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../datasources/todo_local_datasource.dart';
 import '../models/todo_model.dart';
+import '../models/todo_list_model.dart';
 
 class TodoRepositoryImpl implements TodoRepository {
   final TodoLocalDataSource localDataSource;
@@ -35,7 +37,7 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
-  Future<void> UpdateTodoStatus(int id, bool newStatus) async {
+  Future<void> updateTodoStatus(int id, bool newStatus) async {
     //Nhận todo từ Usecase
     print('🟣 REPO: updateTodoStatus() → gọi DataSource');
     await localDataSource.updateTodoStatus(
@@ -45,9 +47,30 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
-  Future<void> updateTodo(int id, String newTitle) async {
+  Future<void> updateTodo(TodoEntity todo) async {
     //Nhận todo từ Usecase
     print('🟣 REPO: updateTodo() → gọi DataSource');
-    await localDataSource.updateTodo(id, newTitle);
-  } //Gọi datasrouce để cập nhật todo với id được chỉ định và newTitle.
+    final model = TodoModel.fromEntity(todo);
+    await localDataSource.updateTodo(model);
+  }
+
+  @override
+  Future<List<TodoListEntity>> getLists() async {
+    print('🟣 REPO: getLists() → gọi DataSource');
+    return await localDataSource.getLists();
+  }
+
+  @override
+  Future<void> addList(TodoListEntity list) async {
+    print('🟣 REPO: addList() → gọi DataSource');
+    final model = TodoListModel.fromEntity(list);
+    await localDataSource.addList(model);
+  }
+
+  @override
+  Future<void> deleteList(String id) async {
+    print('🟣 REPO: deleteList() → gọi DataSource');
+    await localDataSource.deleteList(id);
+  }
 }
+

@@ -11,7 +11,7 @@ class UpdateTodoStatusUsecase {
     //Nhận nhiệm vụ cập nhật trạng thái 1 Todo có id được chỉ định với trạng thái mới (true, false) từ Bloc
     print('🔵 USECASE: UpdateTodoStatusUsecase → gọi Repository');
     try {
-      await repository.UpdateTodoStatus(
+      await repository.updateTodoStatus(
         id,
         newStatus,
       ); //Gọi repository interface để thực hiện thao tác updateStatusTask
