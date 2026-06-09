@@ -8,7 +8,8 @@ import 'package:todoapp/application/bloc/language_bloc.dart';
 import 'package:todoapp/application/bloc/language_state.dart';
 
 class TrashPage extends StatelessWidget {
-  const TrashPage({super.key});
+  final bool isTab;
+  const TrashPage({super.key, this.isTab = false});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class TrashPage extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Navigator.canPop(context)
+        leading: (!isTab && Navigator.canPop(context))
             ? IconButton(
                 icon: Icon(Icons.arrow_back_ios, color: inkColor, size: 20),
                 onPressed: () => Navigator.pop(context),

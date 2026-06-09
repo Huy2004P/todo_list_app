@@ -17,7 +17,8 @@ import 'package:todoapp/application/bloc/language_state.dart';
 import 'package:flutter/foundation.dart';
 
 class AnalyticsPage extends StatelessWidget {
-  const AnalyticsPage({super.key});
+  final bool isTab;
+  const AnalyticsPage({super.key, this.isTab = false});
 
   Future<void> _exportToCSV(BuildContext context, List<TodoEntity> todos) async {
     try {
@@ -86,7 +87,7 @@ class AnalyticsPage extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Navigator.canPop(context)
+        leading: (!isTab && Navigator.canPop(context))
             ? IconButton(
                 icon: Icon(Icons.arrow_back_ios, color: inkColor, size: 20),
                 onPressed: () => Navigator.pop(context),

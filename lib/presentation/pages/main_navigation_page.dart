@@ -23,8 +23,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   final List<Widget> _pages = const [
     HomePage(),
     FocusPage(),
-    AnalyticsPage(),
-    TrashPage(),
+    AnalyticsPage(isTab: true),
+    TrashPage(isTab: true),
   ];
 
   @override

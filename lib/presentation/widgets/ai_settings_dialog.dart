@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../core/services/ai_service.dart';
+import '../../core/localization/app_translation.dart';
 
 class AISettingsDialog extends StatefulWidget {
   const AISettingsDialog({super.key});
@@ -42,7 +43,7 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
     final key = _keyController.text.trim();
     if (key.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập API Key!')),
+        SnackBar(content: Text('api_key_empty'.tr)),
       );
       return;
     }
@@ -50,8 +51,8 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
     await AIService().saveApiKey(key);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã lưu Gemini API Key thành công! 🎉'),
+        SnackBar(
+          content: Text('api_key_saved'.tr),
           backgroundColor: Colors.green,
         ),
       );
@@ -63,8 +64,8 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
     await AIService().deleteApiKey();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xóa API Key! Ứng dụng sẽ sử dụng bộ tạo dự phòng.'),
+        SnackBar(
+          content: Text('api_key_deleted'.tr),
           backgroundColor: Colors.orangeAccent,
         ),
       );
@@ -91,9 +92,9 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
         children: [
           const Icon(CupertinoIcons.sparkles, color: Color(0xFF0066CC), size: 22),
           const SizedBox(width: 8),
-          const Text(
-            'Cài đặt Gemini AI',
-            style: TextStyle(
+          Text(
+            'gemini_settings_title'.tr,
+            style: const TextStyle(
               fontFamily: 'SF Pro Display',
               fontWeight: FontWeight.bold,
             ),
@@ -111,7 +112,7 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Để kích hoạt tính năng AI phân tách công việc con và trợ lý tư vấn, vui lòng dán Gemini API Key của bạn bên dưới.',
+                    'gemini_settings_desc'.tr,
                     style: TextStyle(
                       fontFamily: 'SF Pro Text',
                       fontSize: 13,
@@ -126,7 +127,7 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
                     autofocus: true,
                     style: TextStyle(fontFamily: 'SF Pro Text', color: inkColor),
                     decoration: InputDecoration(
-                      hintText: 'Nhập Gemini API Key...',
+                      hintText: 'enter_api_key'.tr,
                       hintStyle: TextStyle(color: inkMuted.withOpacity(0.6), fontSize: 13),
                       filled: true,
                       fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
@@ -157,15 +158,15 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
                       // but displaying it clearly helps!
                       print('🔗 Hướng dẫn: Truy cập https://aistudio.google.com/ để lấy API Key miễn phí.');
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Hãy truy cập: aistudio.google.com để nhận key miễn phí'),
-                          duration: Duration(seconds: 4),
+                        SnackBar(
+                          content: Text('get_key_free_toast'.tr),
+                          duration: const Duration(seconds: 4),
                         ),
                       );
                     },
-                    child: const Text(
-                      'Lấy Gemini API Key miễn phí tại đây',
-                      style: TextStyle(
+                    child: Text(
+                      'get_api_key_free'.tr,
+                      style: const TextStyle(
                         fontFamily: 'SF Pro Text',
                         fontSize: 12,
                         color: Color(0xFF0066CC),
@@ -181,16 +182,16 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
         if (_hasKey)
           TextButton(
             onPressed: _deleteKey,
-            child: const Text(
-              'Xóa Key',
-              style: TextStyle(color: Colors.redAccent, fontFamily: 'SF Pro Text'),
+            child: Text(
+              'delete_key'.tr,
+              style: const TextStyle(color: Colors.redAccent, fontFamily: 'SF Pro Text'),
             ),
           ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Hủy',
-            style: TextStyle(color: Colors.grey, fontFamily: 'SF Pro Text'),
+          child: Text(
+            'cancel'.tr,
+            style: const TextStyle(color: Colors.grey, fontFamily: 'SF Pro Text'),
           ),
         ),
         ElevatedButton(
@@ -203,9 +204,9 @@ class _AISettingsDialogState extends State<AISettingsDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text(
-            'Lưu',
-            style: TextStyle(fontFamily: 'SF Pro Text', fontWeight: FontWeight.bold),
+          child: Text(
+            'save'.tr,
+            style: const TextStyle(fontFamily: 'SF Pro Text', fontWeight: FontWeight.bold),
           ),
         ),
       ],

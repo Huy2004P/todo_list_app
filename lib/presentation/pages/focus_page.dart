@@ -183,6 +183,7 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             title: Text(
               'focus_mode'.tr,
               style: const TextStyle(
