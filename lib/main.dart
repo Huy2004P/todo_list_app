@@ -7,10 +7,14 @@ import 'package:todoapp/application/bloc/list_event.dart';
 import 'package:todoapp/application/bloc/theme_bloc.dart';
 import 'package:todoapp/application/bloc/theme_event.dart';
 import 'package:todoapp/application/bloc/theme_state.dart';
+import 'package:todoapp/application/bloc/language_bloc.dart';
+import 'package:todoapp/application/bloc/language_event.dart';
+import 'package:todoapp/application/bloc/language_state.dart';
 import 'package:todoapp/core/di/injection.dart' as di;
 import 'package:todoapp/core/services/notification_service.dart';
 import 'package:todoapp/presentation/pages/splash_page.dart';
 import 'core/theme/app_theme.dart';
+import 'package:todoapp/core/responsive/responsive_size.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,16 +48,32 @@ class MyApp extends StatelessWidget {
         BlocProvider<ListBloc>(
           create: (_) => di.sl<ListBloc>()..add(LoadListsEvent()),
         ),
+        BlocProvider<LanguageBloc>(
+          create: (_) => di.sl<LanguageBloc>()..add(LoadLanguageEvent()),
+        ),
       ],
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, state) {
-          return MaterialApp(
-            title: "Todo List App",
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: state.themeMode,
-            home: const SplashPage(),
+      child: BlocBuilder<LanguageBloc, LanguageState>(
+        builder: (context, langState) {
+          return BlocBuilder<ThemeBloc, ThemeState>(
+            builder: (context, themeState) {
+              return MaterialApp(
+                title: "Todo App",
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeState.themeMode,
+                home: const SplashPage(),
+                builder: (context, child) {
+                  ResponsiveSize.init(context);
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      textScaler: TextScaler.linear(themeState.textScaleFactor),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+            },
           );
         },
       ),

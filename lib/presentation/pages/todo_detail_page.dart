@@ -12,6 +12,8 @@ import 'package:flutter/cupertino.dart';
 import '../../domain/entities/subtask_entity.dart';
 import '../../core/services/ai_service.dart';
 import 'edit_todo_page.dart';
+import '../../core/localization/app_translation.dart';
+
 
 class TodoDetailPage extends StatefulWidget {
   final int id;
@@ -91,8 +93,8 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
           UpdateTaskEvent(todo.copyWith(subtasks: newSubtasks)),
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã phân tách công việc bằng AI thành công! 🎉'),
+          SnackBar(
+            content: Text('ai_breakdown_success'.tr),
             backgroundColor: Colors.green,
           ),
         );
@@ -124,45 +126,45 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
   String _getPriorityLabel(String priority) {
     switch (priority.toLowerCase()) {
       case 'high':
-        return 'Cao';
+        return 'priority_high'.tr;
       case 'medium':
-        return 'Trung bình';
+        return 'priority_medium'.tr;
       case 'low':
-        return 'Thấp';
+        return 'priority_low'.tr;
       default:
-        return 'Thường';
+        return 'priority_none'.tr;
     }
   }
 
   String _getCategoryLabel(String category) {
     switch (category.toLowerCase()) {
       case 'work':
-        return 'Công việc';
+        return 'category_work'.tr;
       case 'personal':
-        return 'Cá nhân';
+        return 'category_personal'.tr;
       case 'education':
-        return 'Học tập';
+        return 'category_education'.tr;
       case 'shopping':
-        return 'Mua sắm';
+        return 'category_shopping'.tr;
       case 'others':
       default:
-        return 'Khác';
+        return 'category_others'.tr;
     }
   }
 
   String _getRecurrenceLabel(String rec) {
     switch (rec.toLowerCase()) {
       case 'daily':
-        return 'Hàng ngày';
+        return 'daily'.tr;
       case 'weekly':
-        return 'Hàng tuần';
+        return 'weekly'.tr;
       case 'monthly':
-        return 'Hàng tháng';
+        return 'monthly'.tr;
       case 'yearly':
-        return 'Hàng năm';
+        return 'yearly'.tr;
       case 'none':
       default:
-        return 'Không lặp lại';
+        return 'no_recurrence'.tr;
     }
   }
 
@@ -245,8 +247,8 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
           if (todoIdx == -1) {
             return Scaffold(
               appBar: AppBar(),
-              body: const Center(
-                child: Text("Không tìm thấy công việc này!"),
+              body: Center(
+                child: Text("task_not_found".tr),
               ),
             );
           }
@@ -275,7 +277,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
             appBar: AppBar(
-              title: const Text('Chi tiết', style: TextStyle(fontFamily: 'SF Pro Display', fontWeight: FontWeight.bold)),
+              title: Text('task_detail'.tr, style: const TextStyle(fontFamily: 'SF Pro Display', fontWeight: FontWeight.bold)),
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
@@ -285,7 +287,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.edit_note, size: 24),
-                  tooltip: "Chỉnh sửa",
+                  tooltip: "edit_task".tr,
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -411,7 +413,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                               // Priority chip
                               Chip(
                                 avatar: Icon(Icons.flag_outlined, size: 14, color: _getPriorityColor(todo.priority)),
-                                label: Text("Độ ưu tiên: ${_getPriorityLabel(todo.priority)}"),
+                                label: Text("${"priority".tr}: ${_getPriorityLabel(todo.priority)}"),
                                 shape: const StadiumBorder(),
                                 backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFFAFAFC),
                               ),
@@ -423,7 +425,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                                     color: isOverdue ? const Color(0xFFEF4444) : Colors.green,
                                   ),
                                   label: Text(
-                                    isOverdue ? "Quá hạn: ${_formatDateTime(todo.dueDate!)}" : "Hạn chót: ${_formatDateTime(todo.dueDate!)}",
+                                    isOverdue ? "${"overdue".tr}: ${_formatDateTime(todo.dueDate!)}" : "${"due_date".tr}: ${_formatDateTime(todo.dueDate!)}",
                                     style: TextStyle(
                                       color: isOverdue ? const Color(0xFFEF4444) : null,
                                       fontWeight: isOverdue ? FontWeight.w600 : null,
@@ -437,7 +439,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                               if (todo.recurrence != 'none' && todo.recurrence.isNotEmpty)
                                 Chip(
                                   avatar: const Icon(Icons.autorenew, size: 14, color: Colors.blueAccent),
-                                  label: Text("Lặp lại: ${_getRecurrenceLabel(todo.recurrence)}"),
+                                  label: Text("${"recurrence".tr}: ${_getRecurrenceLabel(todo.recurrence)}"),
                                   shape: const StadiumBorder(),
                                   backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFFAFAFC),
                                 ),
@@ -468,7 +470,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
 
                     // Description Section
                     Text(
-                      "Mô tả chi tiết",
+                      "task_description".tr,
                       style: TextStyle(
                         fontFamily: 'SF Pro Display',
                         fontSize: 17,
@@ -490,7 +492,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                       ),
                       child: Text(
                         (todo.description == null || todo.description!.trim().isEmpty)
-                            ? "Không có mô tả chi tiết."
+                            ? "no_description".tr
                             : todo.description!,
                         style: TextStyle(
                           fontFamily: 'SF Pro Text',
@@ -511,7 +513,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                     // Attached images
                     if (todo.imagePaths.isNotEmpty) ...[
                       Text(
-                        "Hình ảnh đính kèm",
+                        "attached_images".tr,
                         style: TextStyle(fontFamily: 'SF Pro Display', fontSize: 17, fontWeight: FontWeight.w600, color: inkColor),
                       ),
                       const SizedBox(height: 8),
@@ -546,7 +548,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                     // Attached Voice Note player
                     if (todo.audioPath != null) ...[
                       Text(
-                        "Bản ghi âm ghi chú",
+                        "voice_notes".tr,
                         style: TextStyle(fontFamily: 'SF Pro Display', fontSize: 17, fontWeight: FontWeight.w600, color: inkColor),
                       ),
                       const SizedBox(height: 8),
@@ -607,7 +609,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Công việc con (${completedSub}/${totalSub})",
+                          "${"subtasks".tr} (${completedSub}/${totalSub})",
                           style: TextStyle(
                             fontFamily: 'SF Pro Display',
                             fontSize: 17,
@@ -618,7 +620,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                         ),
                         if (hasSubtasks)
                           Text(
-                            "${(subtaskProgress * 100).toInt()}% hoàn thành",
+                            "${(subtaskProgress * 100).toInt()}% ${"completed_label".tr}",
                             style: const TextStyle(
                               fontFamily: 'SF Pro Text',
                               color: Color(0xFF0066CC),
@@ -660,9 +662,9 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                             : TextButton.icon(
                                 onPressed: () => _generateAIBreakdown(todo),
                                 icon: const Icon(CupertinoIcons.sparkles, size: 14, color: Color(0xFF0066CC)),
-                                label: const Text(
-                                  'Phân tách bằng AI',
-                                  style: TextStyle(
+                                label: Text(
+                                  'ai_breakdown'.tr,
+                                  style: const TextStyle(
                                     fontFamily: 'SF Pro Text',
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
@@ -686,7 +688,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                           child: TextField(
                             controller: _subtaskController,
                             decoration: InputDecoration(
-                              hintText: 'Thêm công việc con mới...',
+                              hintText: 'add_subtask'.tr,
                               filled: true,
                               fillColor: canvasColor,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -790,7 +792,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
                         padding: const EdgeInsets.symmetric(vertical: 24.0),
                         child: Center(
                           child: Text(
-                            "Chưa có công việc con.",
+                            "no_subtasks".tr,
                             style: TextStyle(
                               fontFamily: 'SF Pro Text',
                               color: inkMuted,
@@ -809,11 +811,11 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
         } else if (state is TaskError) {
           return Scaffold(
             appBar: AppBar(),
-            body: Center(child: Text("Lỗi: ${state.message}")),
+            body: Center(child: Text("${"error".tr}: ${state.message}")),
           );
         } else {
-          return const Scaffold(
-            body: Center(child: Text("Đang khởi tạo...")),
+          return Scaffold(
+            body: Center(child: Text("initializing".tr)),
           );
         }
       },

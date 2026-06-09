@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todoapp/application/bloc/task_bloc.dart';
 import 'package:todoapp/application/bloc/task_event.dart';
 import 'package:todoapp/application/bloc/task_state.dart';
+import 'package:todoapp/core/localization/app_translation.dart';
+import 'package:todoapp/application/bloc/language_bloc.dart';
+import 'package:todoapp/application/bloc/language_state.dart';
 
 class TrashPage extends StatelessWidget {
   const TrashPage({super.key});
@@ -14,12 +17,14 @@ class TrashPage extends StatelessWidget {
     final inkColor = isDark ? Colors.white : const Color(0xFF1D1D1F);
     final inkMuted = isDark ? const Color(0xFFCCCCCC) : const Color(0xFF7A7A7A);
 
-    return Scaffold(
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, langState) {
+        return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Thùng rác',
-          style: TextStyle(
+        title: Text(
+          'trash'.tr,
+          style: const TextStyle(
             fontFamily: 'SF Pro Display',
             fontWeight: FontWeight.bold,
           ),
@@ -43,12 +48,13 @@ class TrashPage extends StatelessWidget {
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text("Dọn sạch thùng rác?"),
-                          content: const Text("Tất cả công việc trong thùng rác sẽ bị xóa vĩnh viễn và không thể khôi phục."),
+                          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          title: Text('clear_trash_title'.tr),
+                          content: Text('clear_trash_confirm'.tr),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
-                              child: const Text("Hủy"),
+                              child: Text('cancel'.tr),
                             ),
                             TextButton(
                               onPressed: () {
@@ -57,15 +63,15 @@ class TrashPage extends StatelessWidget {
                                 }
                                 Navigator.pop(ctx);
                               },
-                              child: const Text("Xóa vĩnh viễn", style: TextStyle(color: Colors.red)),
+                              child: Text('delete_permanently'.tr, style: const TextStyle(color: Colors.red)),
                             ),
                           ],
                         ),
                       );
                     },
-                    child: const Text(
-                      'Dọn sạch',
-                      style: TextStyle(color: Colors.redAccent, fontFamily: 'SF Pro Text', fontWeight: FontWeight.w600),
+                    child: Text(
+                      'clear_trash_btn_label'.tr,
+                      style: const TextStyle(color: Colors.redAccent, fontFamily: 'SF Pro Text', fontWeight: FontWeight.w600),
                     ),
                   );
                 }
@@ -88,7 +94,7 @@ class TrashPage extends StatelessWidget {
                     Icon(Icons.delete_outline, size: 64, color: inkMuted),
                     const SizedBox(height: 16),
                     Text(
-                      'Thùng rác trống',
+                      'trash_empty'.tr,
                       style: TextStyle(
                         fontFamily: 'SF Pro Text',
                         fontSize: 16,
@@ -97,7 +103,7 @@ class TrashPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Các mục bị xóa sẽ tự động biến mất sau 30 ngày',
+                      'auto_delete_note'.tr,
                       style: TextStyle(
                         fontFamily: 'SF Pro Text',
                         fontSize: 12,
@@ -145,7 +151,7 @@ class TrashPage extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  "Đã xóa ngày: ${item.deletedAt!.day}/${item.deletedAt!.month}/${item.deletedAt!.year}",
+                                  "${'deleted_on'.tr}: ${item.deletedAt!.day}/${item.deletedAt!.month}/${item.deletedAt!.year}",
                                   style: TextStyle(
                                     fontFamily: 'SF Pro Text',
                                     fontSize: 11,
@@ -159,12 +165,12 @@ class TrashPage extends StatelessWidget {
                       // Restore button
                       IconButton(
                         icon: const Icon(Icons.restore, color: Colors.green),
-                        tooltip: "Khôi phục",
+                        tooltip: 'restore'.tr,
                         onPressed: () {
                           context.read<TaskBloc>().add(RestoreFromTrashEvent(item.id));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Đã khôi phục: "${item.title}"'),
+                              content: Text('${'restored_success'.tr}: "${item.title}"'),
                               duration: const Duration(seconds: 2),
                             ),
                           );
@@ -173,24 +179,25 @@ class TrashPage extends StatelessWidget {
                       // Delete permanently button
                       IconButton(
                         icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                        tooltip: "Xóa vĩnh viễn",
+                        tooltip: 'delete_permanently'.tr,
                         onPressed: () {
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              title: const Text("Xóa vĩnh viễn"),
-                              content: Text("Xóa vĩnh viễn công việc \"${item.title}\"? Thao tác này không thể hoàn tác."),
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              title: Text('delete_permanently'.tr),
+                              content: Text("${'delete_permanently'.tr} \"${item.title}\"? ${'delete_permanently_confirm'.tr}"),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx),
-                                  child: const Text("Hủy"),
+                                  child: Text('cancel'.tr),
                                 ),
                                 TextButton(
                                   onPressed: () {
                                     context.read<TaskBloc>().add(DeletePermanentlyEvent(item.id));
                                     Navigator.pop(ctx);
                                   },
-                                  child: const Text("Xóa", style: TextStyle(color: Colors.red)),
+                                  child: Text('delete'.tr, style: const TextStyle(color: Colors.red)),
                                 ),
                               ],
                             ),
@@ -206,6 +213,8 @@ class TrashPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         },
       ),
+    );
+      },
     );
   }
 }

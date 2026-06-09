@@ -9,6 +9,10 @@ import 'package:todoapp/application/bloc/task_event.dart';
 import 'package:todoapp/application/bloc/task_state.dart';
 import 'package:todoapp/domain/entities/todo_entity.dart';
 import 'package:todoapp/core/services/notification_service.dart';
+import 'package:todoapp/core/localization/app_translation.dart';
+import 'package:todoapp/application/bloc/language_bloc.dart';
+import 'package:todoapp/application/bloc/language_state.dart';
+import 'package:todoapp/presentation/widgets/apple_dropdown.dart';
 
 class FocusPage extends StatefulWidget {
   const FocusPage({super.key});
@@ -37,8 +41,8 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
   void _startTimer() {
     if (_selectedTodo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng chọn một công việc để bắt đầu tập trung!'),
+        SnackBar(
+          content: Text('please_select_task'.tr),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -114,11 +118,15 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
       SystemSound.play(SystemSoundType.click);
       HapticFeedback.heavyImpact();
 
+      final String bodyMessage = 'focus_completed_body'.tr
+          .replaceAll('{min}', '$_selectedDurationMinutes')
+          .replaceAll('{task}', _selectedTodo!.title);
+
       // Show notification
       NotificationService().showInstantNotification(
         id: 999,
-        title: 'Hoàn thành tập trung! 🎉',
-        body: 'Chúc mừng bạn đã tập trung hoàn thành ${_selectedDurationMinutes} phút cho "${_selectedTodo!.title}"',
+        title: 'focus_completed_title'.tr,
+        body: bodyMessage,
       );
 
       showDialog(
@@ -133,12 +141,14 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                   : const Color(0xFFE2E8F0),
             ),
           ),
-          title: const Text(
-            'Tuyệt vời! 🎉',
-            style: TextStyle(fontFamily: 'SF Pro Display', fontWeight: FontWeight.bold),
+          title: Text(
+            'focus_completed_title'.tr,
+            style: const TextStyle(fontFamily: 'SF Pro Display', fontWeight: FontWeight.bold),
           ),
           content: Text(
-            'Bạn đã hoàn thành ${_selectedDurationMinutes} phút tập trung cho công việc:\n"${_selectedTodo!.title}"\n\nHãy nghỉ ngơi 5 phút trước khi bắt đầu phiên tiếp theo nhé!',
+            'focus_completed_desc'.tr
+                .replaceAll('{min}', '$_selectedDurationMinutes')
+                .replaceAll('{task}', _selectedTodo!.title),
             style: const TextStyle(fontFamily: 'SF Pro Text'),
           ),
           actions: [
@@ -147,7 +157,7 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                 Navigator.pop(ctx);
                 _resetTimer();
               },
-              child: const Text('Đồng ý', style: TextStyle(color: Color(0xFF0066CC), fontWeight: FontWeight.bold)),
+              child: Text('confirm_dialog_btn'.tr, style: const TextStyle(color: Color(0xFF0066CC), fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -168,29 +178,31 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
     final inkColor = isDark ? Colors.white : const Color(0xFF1D1D1F);
     final inkMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          'Đồng hồ tập trung',
-          style: TextStyle(
-            fontFamily: 'SF Pro Display',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          if (_isRunning)
-            IconButton(
-              icon: const Icon(Icons.flash_on, color: Colors.amber),
-              tooltip: 'Tua nhanh 3 giây (Debug)',
-              onPressed: _enableDebugMode,
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, langState) {
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            title: Text(
+              'focus_mode'.tr,
+              style: const TextStyle(
+                fontFamily: 'SF Pro Display',
+                fontWeight: FontWeight.bold,
+              ),
             ),
-        ],
-      ),
-      body: BlocBuilder<TaskBloc, TaskState>(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            actions: [
+              if (_isRunning)
+                IconButton(
+                  icon: const Icon(Icons.flash_on, color: Colors.amber),
+                  tooltip: 'debug_fast_forward'.tr,
+                  onPressed: _enableDebugMode,
+                ),
+            ],
+          ),
+          body: BlocBuilder<TaskBloc, TaskState>(
         builder: (context, state) {
           if (state is TaskLoaded) {
             final activeTodos = state.allTodos
@@ -207,7 +219,7 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                       Icon(CupertinoIcons.timer, size: 72, color: inkMuted),
                       const SizedBox(height: 16),
                       Text(
-                        'Không có công việc chưa hoàn thành',
+                        'no_active_tasks'.tr,
                         style: TextStyle(
                           fontFamily: 'SF Pro Display',
                           fontSize: 18,
@@ -217,7 +229,7 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Hãy tạo công việc mới để bắt đầu tập trung Pomodoro.',
+                        'create_task_to_focus'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'SF Pro Text',
@@ -254,47 +266,23 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // 1. Task Selector Dropdown
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<TodoEntity>(
-                        value: _selectedTodo,
-                        isExpanded: true,
-                        dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        icon: Icon(CupertinoIcons.chevron_down, color: inkMuted, size: 18),
-                        onChanged: _isRunning
-                            ? null
-                            : (TodoEntity? newValue) {
-                                setState(() {
-                                  _selectedTodo = newValue;
-                                });
-                              },
-                        items: activeTodos.map<DropdownMenuItem<TodoEntity>>((TodoEntity todo) {
-                          return DropdownMenuItem<TodoEntity>(
-                            value: todo,
-                            child: Text(
-                              todo.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: 'SF Pro Text',
-                                fontSize: 15,
-                                color: inkColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                  AppleDropdown<TodoEntity?>(
+                    value: _selectedTodo,
+                    hint: 'select_task_focus'.tr,
+                    items: activeTodos.map((todo) {
+                      return AppleDropdownItem<TodoEntity?>(
+                        value: todo,
+                        label: todo.title,
+                        icon: const Icon(CupertinoIcons.checkmark_seal, color: Color(0xFF0066CC), size: 18),
+                      );
+                    }).toList(),
+                    onChanged: _isRunning
+                        ? null
+                        : (TodoEntity? newValue) {
+                            setState(() {
+                              _selectedTodo = newValue;
+                            });
+                          },
                   ),
                   const SizedBox(height: 36),
 
@@ -326,7 +314,7 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _isRunning ? 'ĐANG TẬP TRUNG' : 'TẠM DỪNG',
+                                _isRunning ? 'focusing'.tr : 'pause'.tr.toUpperCase(),
                                 style: TextStyle(
                                   fontFamily: 'SF Pro Text',
                                   fontSize: 10,
@@ -345,52 +333,54 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
 
                   // 3. Duration Selector (Capsule Buttons)
                   if (!_isRunning)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
                       children: _durations.map((minutes) {
                         final isSelected = _selectedDurationMinutes == minutes;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: ChoiceChip(
-                            label: Text(
-                              '$minutes p',
-                              style: TextStyle(
-                                fontFamily: 'SF Pro Text',
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? Colors.white : inkColor,
-                              ),
+                        final String unit = 'minutes_unit'.tr;
+                        return ChoiceChip(
+                          label: Text(
+                            '$minutes $unit',
+                            style: TextStyle(
+                              fontFamily: 'SF Pro Text',
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? Colors.white : inkColor,
                             ),
-                            selected: isSelected,
-                            selectedColor: const Color(0xFF0066CC),
-                            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                            elevation: 0,
-                            pressElevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? const Color(0xFF0066CC)
-                                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                              ),
-                            ),
-                            onSelected: (_) => _onDurationSelected(minutes),
                           ),
+                          selected: isSelected,
+                          selectedColor: const Color(0xFF0066CC),
+                          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          elevation: 0,
+                          pressElevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? const Color(0xFF0066CC)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                            ),
+                          ),
+                          onSelected: (_) => _onDurationSelected(minutes),
                         );
                       }).toList(),
                     ),
                   const SizedBox(height: 48),
 
                   // 4. Control Buttons (Capsule Pill style)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
                     children: [
                       if (_isRunning) ...[
                         // Pause Button
                         ElevatedButton.icon(
                           onPressed: _pauseTimer,
                           icon: const Icon(CupertinoIcons.pause_fill, size: 18),
-                          label: const Text('Tạm dừng'),
+                          label: Text('pause'.tr),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF9500),
                             foregroundColor: Colors.white,
@@ -402,12 +392,11 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                             textStyle: const TextStyle(fontFamily: 'SF Pro Text', fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 16),
                         // Reset/Cancel Button
                         OutlinedButton.icon(
                           onPressed: _resetTimer,
                           icon: const Icon(CupertinoIcons.clear, size: 18),
-                          label: const Text('Hủy bỏ'),
+                          label: Text('cancel'.tr),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.redAccent,
                             side: const BorderSide(color: Colors.redAccent, width: 1.5),
@@ -423,7 +412,7 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                         ElevatedButton.icon(
                           onPressed: _startTimer,
                           icon: const Icon(CupertinoIcons.play_arrow_solid, size: 18),
-                          label: const Text('Bắt đầu'),
+                          label: Text('start_focus'.tr),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0066CC),
                             foregroundColor: Colors.white,
@@ -435,13 +424,12 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                             textStyle: const TextStyle(fontFamily: 'SF Pro Text', fontWeight: FontWeight.bold),
                           ),
                         ),
-                        if (_secondsRemaining != _selectedDurationMinutes * 60) ...[
-                          const SizedBox(width: 16),
+                        if (_secondsRemaining != _selectedDurationMinutes * 60)
                           // Resume and Reset options
                           OutlinedButton.icon(
                             onPressed: _resetTimer,
                             icon: const Icon(CupertinoIcons.arrow_counterclockwise, size: 18),
-                            label: const Text('Đặt lại'),
+                            label: Text('reset'.tr),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: inkColor,
                               side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: 1.5),
@@ -451,7 +439,6 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
                               textStyle: const TextStyle(fontFamily: 'SF Pro Text', fontWeight: FontWeight.bold),
                             ),
                           ),
-                        ]
                       ]
                     ],
                   ),
@@ -462,6 +449,8 @@ class _FocusPageState extends State<FocusPage> with TickerProviderStateMixin {
           return const Center(child: CircularProgressIndicator());
         },
       ),
+    );
+      },
     );
   }
 }
@@ -508,5 +497,10 @@ class TimerRingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant TimerRingPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.ringColor != ringColor ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.strokeWidth != strokeWidth;
+  }
 }

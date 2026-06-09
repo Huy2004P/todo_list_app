@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:todoapp/application/bloc/task_bloc.dart';
 import 'package:todoapp/application/bloc/theme_bloc.dart';
 import 'package:todoapp/application/bloc/list_bloc.dart';
+import 'package:todoapp/application/bloc/language_bloc.dart';
 import 'package:todoapp/domain/usecases/update_todos_usecase.dart';
 import '../../data/datasources/todo_local_datasource.dart';
 import '../../data/datasources/todo_local_datasource_prefs.dart';
@@ -49,6 +50,7 @@ Future<void> init() async {
     ),
   );
   sl.registerFactory(() => ThemeBloc());
+  sl.registerFactory(() => LanguageBloc());
   sl.registerFactory(
     () => ListBloc(
       getLists: sl(),

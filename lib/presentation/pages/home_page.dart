@@ -13,6 +13,8 @@ import 'package:todoapp/application/bloc/list_state.dart';
 import 'package:todoapp/application/bloc/theme_bloc.dart';
 import 'package:todoapp/application/bloc/theme_event.dart';
 import 'package:todoapp/application/bloc/theme_state.dart';
+import 'package:todoapp/application/bloc/language_bloc.dart';
+import 'package:todoapp/application/bloc/language_state.dart';
 import 'package:todoapp/domain/entities/todo_entity.dart';
 import 'package:todoapp/domain/entities/todo_list_entity.dart';
 import 'package:todoapp/presentation/pages/add_todo_page.dart';
@@ -20,7 +22,11 @@ import 'package:todoapp/presentation/pages/edit_todo_page.dart';
 import 'package:todoapp/presentation/pages/todo_detail_page.dart';
 import 'package:todoapp/presentation/pages/trash_page.dart';
 import 'package:todoapp/presentation/pages/analytics_page.dart';
+import 'package:todoapp/presentation/pages/settings_page.dart';
 import '../../presentation/widgets/todo_title.dart';
+import 'package:todoapp/core/localization/app_translation.dart';
+import 'package:todoapp/core/responsive/responsive_layout.dart';
+import 'package:todoapp/core/responsive/responsive_size.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -320,120 +326,158 @@ class _HomePageState extends State<HomePage> {
         : const Color(0xFF7A7A7A);
     final Color canvasColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
-    return BlocBuilder<TaskBloc, TaskState>(
-      builder: (context, state) {
-        if (state is TaskLoaded) {
-          final filter = state.currentFilter;
-          final isDashboard = filter == 'Dashboard';
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, langState) {
+        return BlocBuilder<TaskBloc, TaskState>(
+          builder: (context, state) {
+            if (state is TaskLoaded) {
+              final filter = state.currentFilter;
+              final isDashboard = filter == 'Dashboard';
 
-          return Scaffold(
-            body: SafeArea(
-              top: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // App Bar / Top sticky bar
-                  _buildTopBar(context, isDark, inkColor, isDashboard, filter),
+              return Scaffold(
+                body: SafeArea(
+                  top: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // App Bar / Top sticky bar
+                      _buildTopBar(context, isDark, inkColor, isDashboard, filter),
 
-                  // Main Content
-                  Expanded(
-                    child: isDashboard
-                        ? _buildDashboard(
-                            context,
-                            state,
-                            isDark,
-                            inkColor,
-                            inkMuted,
-                            canvasColor,
-                          )
-                        : _buildFilteredListView(
-                            context,
-                            state,
-                            isDark,
-                            inkColor,
-                            inkMuted,
-                            canvasColor,
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            bottomNavigationBar: !isDashboard && state.filteredTodos.isNotEmpty
-                ? _buildBottomProgressSticky(
-                    context,
-                    state,
-                    isDark,
-                    inkColor,
-                    inkMuted,
-                    activeBlue,
-                  )
-                : null,
-            floatingActionButton: !isDashboard
-                ? FloatingActionButton.extended(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AddTodoPage(
-                            initialListId:
-                                filter != 'All' &&
-                                    filter != 'Today' &&
-                                    filter != 'Scheduled' &&
-                                    filter != 'Flagged' &&
-                                    filter != 'Completed' &&
-                                    filter != 'Trash'
-                                ? filter
-                                : null,
+                      // Main Content
+                      Expanded(
+                        child: ResponsiveLayout(
+                          mobile: isDashboard
+                              ? _buildDashboard(
+                                  context,
+                                  state,
+                                  isDark,
+                                  inkColor,
+                                  inkMuted,
+                                  canvasColor,
+                                )
+                              : _buildFilteredListView(
+                                  context,
+                                  state,
+                                  isDark,
+                                  inkColor,
+                                  inkMuted,
+                                  canvasColor,
+                                ),
+                          tablet: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                width: 320.w,
+                                child: _buildDashboard(
+                                  context,
+                                  state,
+                                  isDark,
+                                  inkColor,
+                                  inkMuted,
+                                  canvasColor,
+                                ),
+                              ),
+                              VerticalDivider(
+                                width: 1,
+                                thickness: 0.5,
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                              ),
+                              Expanded(
+                                child: _buildFilteredListView(
+                                  context,
+                                  state,
+                                  isDark,
+                                  inkColor,
+                                  inkMuted,
+                                  canvasColor,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                    label: const Text(
-                      'Thêm công việc',
-                      style: TextStyle(
-                        fontFamily: 'SF Pro Text',
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                    icon: const Icon(Icons.add),
-                    backgroundColor: activeBlue,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: const StadiumBorder(),
-                  )
-                : null,
-          );
-        }
-
-        if (state is TaskLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (state is TaskError) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                  const SizedBox(height: 8),
-                  Text('Lỗi: ${state.message}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () =>
-                        context.read<TaskBloc>().add(LoadTaskEvent()),
-                    child: const Text("Thử lại"),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        }
+                ),
+                bottomNavigationBar: !ResponsiveLayout.isTablet(context) && !isDashboard && state.filteredTodos.isNotEmpty
+                    ? _buildBottomProgressSticky(
+                        context,
+                        state,
+                        isDark,
+                        inkColor,
+                        inkMuted,
+                        activeBlue,
+                      )
+                    : null,
+                floatingActionButton: (!isDashboard || ResponsiveLayout.isTablet(context))
+                    ? FloatingActionButton.extended(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddTodoPage(
+                                initialListId:
+                                    filter != 'All' &&
+                                        filter != 'Today' &&
+                                        filter != 'Scheduled' &&
+                                        filter != 'Flagged' &&
+                                        filter != 'Completed' &&
+                                        filter != 'Trash' &&
+                                        filter != 'Dashboard'
+                                    ? filter
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                        label: Text(
+                          'add_task'.tr,
+                          style: const TextStyle(
+                            fontFamily: 'SF Pro Text',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        icon: const Icon(Icons.add),
+                        backgroundColor: activeBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: const StadiumBorder(),
+                      )
+                    : null,
+              );
+            }
 
-        return const Scaffold(
-          body: Center(child: Text('Đang khởi tạo dữ liệu')),
+            if (state is TaskLoading) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (state is TaskError) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                      const SizedBox(height: 8),
+                      Text('Lỗi: ${state.message}'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () =>
+                            context.read<TaskBloc>().add(LoadTaskEvent()),
+                        child: const Text("Thử lại"),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return const Scaffold(
+              body: Center(child: Text('Đang khởi tạo dữ liệu')),
+            );
+          },
         );
       },
     );
@@ -466,7 +510,7 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (!isDashboard)
+                if (!isDashboard && !ResponsiveLayout.isTablet(context))
                   GestureDetector(
                     onTap: () {
                       context.read<TaskBloc>().add(
@@ -480,9 +524,9 @@ class _HomePageState extends State<HomePage> {
                           size: 16,
                           color: const Color(0xFF0066CC),
                         ),
-                        const Text(
-                          "Danh sách",
-                          style: TextStyle(
+                        Text(
+                          'lists'.tr,
+                          style: const TextStyle(
                             fontFamily: 'SF Pro Text',
                             fontSize: 16,
                             color: Color(0xFF0066CC),
@@ -493,7 +537,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 else
                   Text(
-                    "Việc cần làm",
+                    'todo_list_app'.tr,
                     style: TextStyle(
                       fontFamily: 'SF Pro Display',
                       fontSize: 18,
@@ -527,7 +571,14 @@ class _HomePageState extends State<HomePage> {
                     PopupMenuButton<String>(
                       icon: Icon(Icons.more_horiz, color: inkColor, size: 20),
                       onSelected: (val) {
-                        if (val == 'backup') {
+                        if (val == 'settings') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SettingsPage(),
+                            ),
+                          );
+                        } else if (val == 'backup') {
                           context.read<TaskBloc>().add(BackupDataEvent());
                         } else if (val == 'restore') {
                           context.read<TaskBloc>().add(RestoreDataEvent());
@@ -548,60 +599,75 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'analytics',
+                        PopupMenuItem(
+                          value: 'settings',
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.analytics_outlined,
+                              const Icon(
+                                Icons.settings_outlined,
                                 size: 18,
-                                color: Colors.purple,
+                                color: Colors.blueGrey,
                               ),
-                              SizedBox(width: 8),
-                              Text("Thống kê hiệu suất"),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'trash',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.delete_outline,
-                                size: 18,
-                                color: Colors.red,
-                              ),
-                              SizedBox(width: 8),
-                              Text("Thùng rác"),
+                              const SizedBox(width: 8),
+                              Text('settings'.tr),
                             ],
                           ),
                         ),
                         const PopupMenuDivider(),
-                        const PopupMenuItem(
+                        PopupMenuItem(
+                          value: 'analytics',
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.analytics_outlined,
+                                size: 18,
+                                color: Colors.purple,
+                              ),
+                              const SizedBox(width: 8),
+                              Text('performance_analytics'.tr),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'trash',
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.delete_outline,
+                                size: 18,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(width: 8),
+                              Text('trash'.tr),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
                           value: 'backup',
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.backup_outlined,
                                 size: 18,
                                 color: Colors.blue,
                               ),
-                              SizedBox(width: 8),
-                              Text("Sao lưu (JSON)"),
+                              const SizedBox(width: 8),
+                              Text('backup_data'.tr),
                             ],
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'restore',
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.restore_outlined,
                                 size: 18,
                                 color: Colors.green,
                               ),
-                              SizedBox(width: 8),
-                              Text("Khôi phục (JSON)"),
+                              const SizedBox(width: 8),
+                              Text('restore_data'.tr),
                             ],
                           ),
                         ),
@@ -625,6 +691,7 @@ class _HomePageState extends State<HomePage> {
     Color inkMuted,
     Color canvasColor,
   ) {
+    final textScale = MediaQuery.of(context).textScaleFactor;
     // Calculate counters
     final todayCount = state.allTodos.where((t) {
       if (t.isTrash || t.isDone) return false;
@@ -669,7 +736,7 @@ class _HomePageState extends State<HomePage> {
                   }
                 },
                 decoration: InputDecoration(
-                  hintText: "Tìm kiếm...",
+                  hintText: "search_tasks".tr,
                   prefixIcon: const Icon(Icons.search, size: 18),
                   filled: true,
                   fillColor: isDark
@@ -724,12 +791,12 @@ class _HomePageState extends State<HomePage> {
           mainAxisSpacing: 12,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.4,
+          childAspectRatio: 1.25 / textScale,
           children: [
             _buildSmartFilterCard(
               context,
               'Today',
-              'Hôm nay',
+              'today'.tr,
               todayCount,
               Icons.today,
               const Color(0xFFFF3B30),
@@ -738,7 +805,7 @@ class _HomePageState extends State<HomePage> {
             _buildSmartFilterCard(
               context,
               'Scheduled',
-              'Đã lên lịch',
+              'scheduled'.tr,
               scheduledCount,
               Icons.calendar_month,
               const Color(0xFF007AFF),
@@ -747,7 +814,7 @@ class _HomePageState extends State<HomePage> {
             _buildSmartFilterCard(
               context,
               'All',
-              'Tất cả',
+              'all'.tr,
               allCount,
               Icons.all_inbox,
               const Color(0xFF8E8E93),
@@ -756,7 +823,7 @@ class _HomePageState extends State<HomePage> {
             _buildSmartFilterCard(
               context,
               'Flagged',
-              'Quan trọng',
+              'flagged'.tr,
               flaggedCount,
               Icons.flag,
               const Color(0xFFFF9500),
@@ -765,7 +832,7 @@ class _HomePageState extends State<HomePage> {
             _buildSmartFilterCard(
               context,
               'Completed',
-              'Đã xong',
+              'completed'.tr,
               completedCount,
               Icons.check_circle,
               const Color(0xFF34C759),
@@ -780,7 +847,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Thư mục của tôi",
+              "my_folders".tr,
               style: TextStyle(
                 fontFamily: 'SF Pro Display',
                 fontSize: 20,
@@ -792,7 +859,7 @@ class _HomePageState extends State<HomePage> {
             IconButton(
               onPressed: () => _showAddListDialog(context),
               icon: const Icon(Icons.add, color: Color(0xFF0066CC)),
-              tooltip: "Thêm thư mục",
+              tooltip: "add_folder".tr,
             ),
           ],
         ),
@@ -813,7 +880,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Center(
                     child: Text(
-                      "Chưa có thư mục tùy chọn",
+                      "no_folders_yet".tr,
                       style: TextStyle(
                         color: inkMuted,
                         fontFamily: 'SF Pro Text',
@@ -843,20 +910,20 @@ class _HomePageState extends State<HomePage> {
                       return await showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text("Xóa thư mục"),
+                          title: Text("delete_folder".tr),
                           content: Text(
-                            "Bạn có chắc chắn muốn xóa thư mục \"${folder.name}\"? Tất cả công việc bên trong cũng sẽ bị xóa vĩnh viễn.",
+                            "delete_folder_confirm".tr.replaceAll("{name}", folder.name),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text("Hủy"),
+                              child: Text("cancel".tr),
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text(
-                                "Xóa",
-                                style: TextStyle(color: Colors.red),
+                              child: Text(
+                                "delete".tr,
+                                style: const TextStyle(color: Colors.red),
                               ),
                             ),
                           ],
@@ -999,6 +1066,8 @@ class _HomePageState extends State<HomePage> {
                     ? const Color(0xFF94A3B8)
                     : const Color(0xFF64748B),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -1065,7 +1134,7 @@ class _HomePageState extends State<HomePage> {
 
     title = title.trim().replaceAll(RegExp(r'\s+'), ' ');
     if (title.isEmpty) {
-      title = "Công việc mới";
+      title = "new_task_placeholder".tr;
     }
 
     return TodoEntity(
@@ -1089,26 +1158,30 @@ class _HomePageState extends State<HomePage> {
     Color inkMuted,
     Color canvasColor,
   ) {
-    final todos = state.filteredTodos;
-    final filter = state.currentFilter;
+    var filter = state.currentFilter;
+    List<TodoEntity> todos = state.filteredTodos;
+    if (ResponsiveLayout.isTablet(context) && filter == 'Dashboard') {
+      filter = 'All';
+      todos = state.allTodos.where((t) => !t.isTrash && !t.isDone).toList();
+    }
 
-    String filterTitle = 'Công việc';
+    String filterTitle = 'tasks'.tr;
     Color accentColor = const Color(0xFF0066CC);
 
     if (filter == 'Today') {
-      filterTitle = 'Hôm nay';
+      filterTitle = 'today'.tr;
       accentColor = const Color(0xFFFF3B30);
     } else if (filter == 'Scheduled') {
-      filterTitle = 'Đã lên lịch';
+      filterTitle = 'scheduled'.tr;
       accentColor = const Color(0xFF007AFF);
     } else if (filter == 'All') {
-      filterTitle = 'Tất cả';
+      filterTitle = 'all'.tr;
       accentColor = const Color(0xFF8E8E93);
     } else if (filter == 'Flagged') {
-      filterTitle = 'Quan trọng';
+      filterTitle = 'flagged'.tr;
       accentColor = const Color(0xFFFF9500);
     } else if (filter == 'Completed') {
-      filterTitle = 'Đã hoàn thành';
+      filterTitle = 'completed'.tr;
       accentColor = const Color(0xFF34C759);
     } else {
       // Find list name in ListBloc
@@ -1122,298 +1195,319 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      children: [
-        // Title Filter Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              filterTitle,
-              style: TextStyle(
-                fontFamily: 'SF Pro Display',
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-                color: accentColor,
-              ),
-            ),
-            // Sort popup
-            PopupMenuButton<String>(
-              icon: Icon(Icons.sort, color: inkColor),
-              onSelected: (val) {
-                context.read<TaskBloc>().add(SortTasksEvent(val));
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'createdAt',
-                  child: Text(
-                    "Thời gian tạo",
-                    style: TextStyle(
-                      color: state.sortBy == 'createdAt' ? accentColor : null,
+    final showQuickAdd = (filter != 'Completed' && filter != 'Trash');
+
+    return CustomScrollView(
+      key: const PageStorageKey('filtered_task_scroll_view'),
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title Filter Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      filterTitle,
+                      style: TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: accentColor,
+                      ),
+                    ),
+                    // Sort popup
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.sort, color: inkColor),
+                      onSelected: (val) {
+                        context.read<TaskBloc>().add(SortTasksEvent(val));
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'createdAt',
+                          child: Text(
+                            "created_time".tr,
+                            style: TextStyle(
+                              color: state.sortBy == 'createdAt' ? accentColor : null,
+                            ),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'dueDate',
+                          child: Text(
+                            "due_date".tr,
+                            style: TextStyle(
+                              color: state.sortBy == 'dueDate' ? accentColor : null,
+                            ),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'priority',
+                          child: Text(
+                            "priority".tr,
+                            style: TextStyle(
+                              color: state.sortBy == 'priority' ? accentColor : null,
+                            ),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'alphabetical',
+                          child: Text(
+                            "alphabetical".tr,
+                            style: TextStyle(
+                              color: state.sortBy == 'alphabetical'
+                                  ? accentColor
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Search within filter
+                TextField(
+                  onChanged: (val) {
+                    context.read<TaskBloc>().add(SearchTasksEvent(val.trim()));
+                  },
+                  decoration: InputDecoration(
+                    hintText: "search_in_section".tr,
+                    prefixIcon: const Icon(Icons.search, size: 18),
+                    filled: true,
+                    fillColor: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF1F5F9),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-                PopupMenuItem(
-                  value: 'dueDate',
-                  child: Text(
-                    "Hạn chót",
-                    style: TextStyle(
-                      color: state.sortBy == 'dueDate' ? accentColor : null,
+                const SizedBox(height: 20),
+
+                // Smart Quick-Add Input field
+                if (showQuickAdd) ...[
+                  TextField(
+                    controller: _quickAddController,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (val) {
+                      if (val.trim().isNotEmpty) {
+                        final listId = filter != 'All' &&
+                                filter != 'Today' &&
+                                filter != 'Scheduled' &&
+                                filter != 'Flagged'
+                            ? filter
+                            : null;
+                        final newTodo = _parseSmartQuickAdd(val.trim(), listId);
+                        context.read<TaskBloc>().add(AddTaskEvent(newTodo));
+                        _quickAddController.clear();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${"added_quick".tr}: "${newTodo.title}"'),
+                            duration: const Duration(seconds: 2),
+                            action: SnackBarAction(
+                              label: "view".tr,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TodoDetailPage(id: newTodo.id),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: "quick_add_hint".tr,
+                      hintStyle: TextStyle(
+                        fontFamily: 'SF Pro Text',
+                        fontSize: 13,
+                        color: inkMuted.withOpacity(0.8),
+                      ),
+                      prefixIcon: const Icon(CupertinoIcons.plus_circle, size: 18, color: Color(0xFF0066CC)),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.send, size: 16, color: Color(0xFF0066CC)),
+                        onPressed: () {
+                          final val = _quickAddController.text;
+                          if (val.trim().isNotEmpty) {
+                            final listId = filter != 'All' &&
+                                    filter != 'Today' &&
+                                    filter != 'Scheduled' &&
+                                    filter != 'Flagged'
+                                ? filter
+                                : null;
+                            final newTodo = _parseSmartQuickAdd(val.trim(), listId);
+                            context.read<TaskBloc>().add(AddTaskEvent(newTodo));
+                            _quickAddController.clear();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('${"added_quick".tr}: "${newTodo.title}"'),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E293B).withOpacity(0.6)
+                          : const Color(0xFFF1F5F9).withOpacity(0.6),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          width: 1,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          width: 1,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF0066CC),
+                          width: 1.5,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'priority',
-                  child: Text(
-                    "Độ ưu tiên",
-                    style: TextStyle(
-                      color: state.sortBy == 'priority' ? accentColor : null,
-                    ),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'alphabetical',
-                  child: Text(
-                    "Tên A-Z",
-                    style: TextStyle(
-                      color: state.sortBy == 'alphabetical'
-                          ? accentColor
-                          : null,
-                    ),
-                  ),
-                ),
+                  const SizedBox(height: 16),
+                ],
               ],
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // Search within filter
-        TextField(
-          onChanged: (val) {
-            context.read<TaskBloc>().add(SearchTasksEvent(val.trim()));
-          },
-          decoration: InputDecoration(
-            hintText: "Tìm kiếm trong mục này...",
-            prefixIcon: const Icon(Icons.search, size: 18),
-            filled: true,
-            fillColor: isDark
-                ? const Color(0xFF1E293B)
-                : const Color(0xFFF1F5F9),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 10,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
           ),
         ),
-        const SizedBox(height: 20),
-
-        // Smart Quick-Add Input field
-        if (filter != 'Completed' && filter != 'Trash') ...[
-          TextField(
-            controller: _quickAddController,
-            textInputAction: TextInputAction.send,
-            onSubmitted: (val) {
-              if (val.trim().isNotEmpty) {
-                final listId = filter != 'All' &&
-                        filter != 'Today' &&
-                        filter != 'Scheduled' &&
-                        filter != 'Flagged'
-                    ? filter
-                    : null;
-                final newTodo = _parseSmartQuickAdd(val.trim(), listId);
-                context.read<TaskBloc>().add(AddTaskEvent(newTodo));
-                _quickAddController.clear();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Đã thêm nhanh: "${newTodo.title}"'),
-                    duration: const Duration(seconds: 2),
-                    action: SnackBarAction(
-                      label: 'Xem',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TodoDetailPage(id: newTodo.id),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: todos.isEmpty
+              ? SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 64.0),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 48,
+                            color: inkMuted,
                           ),
-                        );
-                      },
+                          const SizedBox(height: 12),
+                          Text(
+                            "no_tasks_found".tr,
+                            style: TextStyle(
+                              fontFamily: 'SF Pro Text',
+                              fontSize: 16,
+                              color: inkMuted,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                );
-              }
-            },
-            decoration: InputDecoration(
-              hintText: "Thêm việc... (VD: Mua sữa #giadinh !cao ngày mai lúc 15:00)",
-              hintStyle: TextStyle(
-                fontFamily: 'SF Pro Text',
-                fontSize: 13,
-                color: inkMuted.withOpacity(0.8),
-              ),
-              prefixIcon: const Icon(CupertinoIcons.plus_circle, size: 18, color: Color(0xFF0066CC)),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.send, size: 16, color: Color(0xFF0066CC)),
-                onPressed: () {
-                  final val = _quickAddController.text;
-                  if (val.trim().isNotEmpty) {
-                    final listId = filter != 'All' &&
-                            filter != 'Today' &&
-                            filter != 'Scheduled' &&
-                            filter != 'Flagged'
-                        ? filter
-                        : null;
-                    final newTodo = _parseSmartQuickAdd(val.trim(), listId);
-                    context.read<TaskBloc>().add(AddTaskEvent(newTodo));
-                    _quickAddController.clear();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Đã thêm nhanh: "${newTodo.title}"'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                },
-              ),
-              filled: true,
-              fillColor: isDark
-                  ? const Color(0xFF1E293B).withOpacity(0.6)
-                  : const Color(0xFFF1F5F9).withOpacity(0.6),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  width: 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF0066CC),
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        todos.isEmpty
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 64.0),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 48,
-                        color: inkMuted,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        "Không có công việc nào!",
-                        style: TextStyle(
-                          fontFamily: 'SF Pro Text',
-                          fontSize: 16,
-                          color: inkMuted,
+                )
+              : SliverList.builder(
+                  itemCount: todos.length,
+                  itemBuilder: (context, index) {
+                    final item = todos[index];
+                    return Dismissible(
+                      key: Key("todo-item-${item.id}"),
+                      background: Container(
+                        color: Colors.redAccent.withOpacity(0.1),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 24.0),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                          size: 24,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              )
-            : Column(
-                children: todos.map((item) {
-                  return Dismissible(
-                    key: Key("todo-item-${item.id}"),
-                    background: Container(
-                      color: Colors.redAccent.withOpacity(0.1),
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 24.0),
-                      child: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                        size: 24,
-                      ),
-                    ),
-                    direction: DismissDirection.endToStart,
-                    confirmDismiss: (dir) async {
-                      // Move to trash confirm
-                      return await showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text("Xóa công việc"),
-                          content: Text(
-                            "Bỏ công việc \"${item.title}\" vào Thùng rác?",
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text("Hủy"),
+                      direction: DismissDirection.endToStart,
+                      confirmDismiss: (dir) async {
+                        // Move to trash confirm
+                        return await showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text("delete_task".tr),
+                            content: Text(
+                              "delete_task_confirm".tr.replaceAll("{name}", item.title),
                             ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text(
-                                "Xóa",
-                                style: TextStyle(color: Colors.red),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: Text("cancel".tr),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    onDismissed: (_) {
-                      context.read<TaskBloc>().add(MoveToTrashEvent(item.id));
-                    },
-                    child: TodoTitle(
-                      todo: item,
-                      onChanged: (newValue) {
-                        context.read<TaskBloc>().add(
-                          UpdateTaskStatusEvent(item.id, newValue!),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text(
+                                  "delete".tr,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
-                      onDelete: () {
+                      onDismissed: (_) {
                         context.read<TaskBloc>().add(MoveToTrashEvent(item.id));
                       },
-                      onEdit: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                EditTodoPage(id: item.id, oldTodo: item),
-                          ),
-                        );
-                      },
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TodoDetailPage(id: item.id),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
-        const SizedBox(height: 80),
+                      child: TodoTitle(
+                        todo: item,
+                        onChanged: (newValue) {
+                          context.read<TaskBloc>().add(
+                            UpdateTaskStatusEvent(item.id, newValue!),
+                          );
+                        },
+                        onDelete: () {
+                          context.read<TaskBloc>().add(MoveToTrashEvent(item.id));
+                        },
+                        onEdit: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  EditTodoPage(id: item.id, oldTodo: item),
+                            ),
+                          );
+                        },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TodoDetailPage(id: item.id),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+        ),
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 80),
+        ),
       ],
     );
   }
@@ -1457,7 +1551,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "${(completionRate * 100).toInt()}% Hoàn thành mục này",
+                      "${(completionRate * 100).toInt()}% ${"completed_section".tr}",
                       style: TextStyle(
                         fontFamily: 'SF Pro Display',
                         fontSize: 14,
@@ -1466,7 +1560,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Text(
-                      "Đang làm: $pending | Đã xong: $done",
+                      "${"in_progress".tr}: $pending | ${"completed".tr}: $done",
                       style: TextStyle(
                         fontFamily: 'SF Pro Text',
                         fontSize: 11,

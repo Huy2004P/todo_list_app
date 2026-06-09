@@ -10,6 +10,9 @@ import '../../application/bloc/list_bloc.dart';
 import '../../application/bloc/list_state.dart';
 import '../../domain/entities/todo_entity.dart';
 import '../../domain/entities/subtask_entity.dart';
+import '../../core/localization/app_translation.dart';
+import '../widgets/apple_dropdown.dart';
+
 
 class AddTodoPage extends StatefulWidget {
   final String? initialListId;
@@ -74,16 +77,16 @@ class _AddTodoPageState extends State<AddTodoPage> {
   String _getCategoryNameVi(String category) {
     switch (category.toLowerCase()) {
       case 'work':
-        return 'Công việc';
+        return 'category_work'.tr;
       case 'personal':
-        return 'Cá nhân';
+        return 'category_personal'.tr;
       case 'education':
-        return 'Học tập';
+        return 'category_education'.tr;
       case 'shopping':
-        return 'Mua sắm';
+        return 'category_shopping'.tr;
       case 'others':
       default:
-        return 'Khác';
+        return 'category_others'.tr;
     }
   }
 
@@ -225,9 +228,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Thêm mới',
-          style: TextStyle(
+        title: Text(
+          'add_task'.tr,
+          style: const TextStyle(
             fontFamily: 'SF Pro Display',
             fontWeight: FontWeight.bold,
           ),
@@ -248,7 +251,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  "Tạo công việc mới",
+                  "create_task".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 28,
@@ -267,7 +270,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Thư mục công việc",
+                            "select_folder".tr,
                             style: TextStyle(
                               fontFamily: 'SF Pro Display',
                               fontSize: 16,
@@ -276,53 +279,20 @@ class _AddTodoPageState extends State<AddTodoPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
+                          AppleDropdown<String?>(
                             value: _selectedListId,
-                            hint: Text(
-                              'Không thuộc thư mục nào',
-                              style: TextStyle(color: inkMuted, fontSize: 14),
-                            ),
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: canvasColor,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: isDark
-                                      ? const Color(0xFF334155)
-                                      : const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                            ),
+                            hint: 'select_folder'.tr,
                             items: [
-                              DropdownMenuItem<String>(
+                              AppleDropdownItem<String?>(
                                 value: null,
-                                child: Text(
-                                  'Mặc định (Tất cả)',
-                                  style: TextStyle(color: inkColor),
-                                ),
+                                label: 'default_all'.tr,
+                                icon: Icon(Icons.folder_open, color: inkMuted, size: 18),
                               ),
                               ...listState.lists.map((list) {
-                                return DropdownMenuItem<String>(
+                                return AppleDropdownItem<String?>(
                                   value: list.id,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.folder,
-                                        color: Color(list.colorHex),
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        list.name,
-                                        style: TextStyle(color: inkColor),
-                                      ),
-                                    ],
-                                  ),
+                                  label: list.name,
+                                  icon: Icon(Icons.folder, color: Color(list.colorHex), size: 18),
                                 );
                               }),
                             ],
@@ -343,13 +313,13 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 // Title Input
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tên công việc *',
-                    hintText: 'Nhập việc cần làm...',
+                  decoration: InputDecoration(
+                    labelText: '${"task_title".tr} *',
+                    hintText: 'enter_task_title'.tr,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Vui lòng nhập tên công việc';
+                      return 'please_enter_task_title'.tr;
                     }
                     return null;
                   },
@@ -360,16 +330,16 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 TextFormField(
                   controller: _descController,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Chi tiết mô tả',
-                    hintText: 'Nhập mô tả thêm (không bắt buộc)...',
+                  decoration: InputDecoration(
+                    labelText: 'task_description'.tr,
+                    hintText: 'enter_task_desc'.tr,
                   ),
                 ),
                 const SizedBox(height: 20),
 
                 // Recurrence
                 Text(
-                  "Lặp lại",
+                  "recurrence".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -378,40 +348,19 @@ class _AddTodoPageState extends State<AddTodoPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
+                AppleDropdown<String>(
                   value: _recurrence,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: canvasColor,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: isDark
-                            ? const Color(0xFF334155)
-                            : const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'none',
-                      child: Text('Không lặp lại'),
-                    ),
-                    DropdownMenuItem(value: 'daily', child: Text('Hàng ngày')),
-                    DropdownMenuItem(value: 'weekly', child: Text('Hàng tuần')),
-                    DropdownMenuItem(
-                      value: 'monthly',
-                      child: Text('Hàng tháng'),
-                    ),
-                    DropdownMenuItem(value: 'yearly', child: Text('Hàng năm')),
+                  hint: 'recurrence'.tr,
+                  items: [
+                    AppleDropdownItem(value: 'none', label: 'no_recurrence'.tr),
+                    AppleDropdownItem(value: 'daily', label: 'daily'.tr),
+                    AppleDropdownItem(value: 'weekly', label: 'weekly'.tr),
+                    AppleDropdownItem(value: 'monthly', label: 'monthly'.tr),
+                    AppleDropdownItem(value: 'yearly', label: 'yearly'.tr),
                   ],
                   onChanged: (val) {
                     setState(() {
-                      _recurrence = val ?? 'none';
+                      _recurrence = val;
                     });
                   },
                 ),
@@ -419,7 +368,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Custom Tags
                 Text(
-                  "Nhãn thẻ (Tags)",
+                  "tags".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -434,7 +383,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                       child: TextField(
                         controller: _tagController,
                         decoration: InputDecoration(
-                          hintText: 'Thêm thẻ (ví dụ: giadinh)...',
+                          hintText: 'add_tag_hint'.tr,
                           filled: true,
                           fillColor: canvasColor,
                           contentPadding: const EdgeInsets.symmetric(
@@ -489,7 +438,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Category Selection
                 Text(
-                  "Chọn Danh mục",
+                  "select_category".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -523,7 +472,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Priority Selection
                 Text(
-                  "Chọn Độ ưu tiên",
+                  "select_priority".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -538,7 +487,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                       child: _buildConfiguratorOption(
                         context,
                         isSelected: _priority == 'low',
-                        label: 'Thấp',
+                        label: 'priority_low'.tr,
                         onTap: () => setState(() => _priority = 'low'),
                         isDark: isDark,
                         inkColor: inkColor,
@@ -554,7 +503,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                       child: _buildConfiguratorOption(
                         context,
                         isSelected: _priority == 'medium',
-                        label: 'T.Bình',
+                        label: 'priority_medium'.tr,
                         onTap: () => setState(() => _priority = 'medium'),
                         isDark: isDark,
                         inkColor: inkColor,
@@ -570,7 +519,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                       child: _buildConfiguratorOption(
                         context,
                         isSelected: _priority == 'high',
-                        label: 'Cao',
+                        label: 'priority_high'.tr,
                         onTap: () => setState(() => _priority = 'high'),
                         isDark: isDark,
                         inkColor: inkColor,
@@ -587,7 +536,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Due Date
                 Text(
-                  "Thiết lập hạn chót",
+                  "due_date".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -615,7 +564,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                         ),
                         child: Text(
                           _dueDate == null
-                              ? 'Không có hạn chót'
+                              ? 'no_due_date'.tr
                               : _formatDateTime(_dueDate!),
                           style: TextStyle(
                             fontFamily: 'SF Pro Text',
@@ -649,7 +598,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                           vertical: 14,
                         ),
                       ),
-                      child: const Text('Chọn'),
+                      child: Text('select'.tr),
                     ),
                     if (_dueDate != null) ...[
                       const SizedBox(width: 4),
@@ -664,7 +613,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Image attachments
                 Text(
-                  "Đính kèm hình ảnh",
+                  "attach_images".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -678,7 +627,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     ElevatedButton.icon(
                       onPressed: () => _pickImage(ImageSource.camera),
                       icon: const Icon(Icons.camera_alt),
-                      label: const Text('Máy ảnh'),
+                      label: Text('camera'.tr),
                       style: ElevatedButton.styleFrom(
                         elevation: 0,
                         backgroundColor: isDark
@@ -691,7 +640,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     ElevatedButton.icon(
                       onPressed: () => _pickImage(ImageSource.gallery),
                       icon: const Icon(Icons.photo_library),
-                      label: const Text('Thư viện'),
+                      label: Text('gallery'.tr),
                       style: ElevatedButton.styleFrom(
                         elevation: 0,
                         backgroundColor: isDark
@@ -750,7 +699,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Audio recording notes
                 Text(
-                  "Ghi âm ghi chú",
+                  "voice_notes".tr,
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -796,10 +745,10 @@ class _AddTodoPageState extends State<AddTodoPage> {
                           children: [
                             Text(
                               _isRecording
-                                  ? "Đang thu âm giọng nói..."
+                                  ? "recording".tr
                                   : (_audioPath != null
-                                        ? "Đã lưu bản ghi âm"
-                                        : "Chưa có bản ghi âm"),
+                                        ? "audio_saved".tr
+                                        : "no_audio".tr),
                               style: TextStyle(
                                 fontFamily: 'SF Pro Text',
                                 fontWeight: FontWeight.w600,
@@ -811,7 +760,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                             ),
                             if (!_isRecording && _audioPath != null)
                               Text(
-                                "Nhấn nút Phát bên phải để nghe lại",
+                                "play_audio_hint".tr,
                                 style: TextStyle(
                                   fontFamily: 'SF Pro Text',
                                   fontSize: 11,
@@ -848,7 +797,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
                 // Subtasks
                 Text(
-                  "Việc con (${_subtasks.length})",
+                  "${"subtasks".tr} (${_subtasks.length})",
                   style: TextStyle(
                     fontFamily: 'SF Pro Display',
                     fontSize: 16,
@@ -863,7 +812,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                       child: TextField(
                         controller: _subtaskController,
                         decoration: InputDecoration(
-                          hintText: 'Thêm việc con...',
+                          hintText: 'add_subtask'.tr,
                           filled: true,
                           fillColor: canvasColor,
                           contentPadding: const EdgeInsets.symmetric(
@@ -965,7 +914,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                       context.read<TaskBloc>().add(AddTaskEvent(todo));
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Đã thêm công việc mới!')),
+                        SnackBar(content: Text('task_added_success'.tr)),
                       );
 
                       Navigator.pop(context);
@@ -978,8 +927,8 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text(
-                    'Tạo công việc',
+                  child: Text(
+                    'create_task'.tr,
                     style: TextStyle(
                       fontFamily: 'SF Pro Text',
                       fontSize: 16,
@@ -1009,7 +958,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF272729) : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -1020,21 +969,24 @@ class _AddTodoPageState extends State<AddTodoPage> {
             width: isSelected ? 2 : 1,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[icon, const SizedBox(width: 6)],
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'SF Pro Text',
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? const Color(0xFF0071E3) : inkColor,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[icon, const SizedBox(width: 6)],
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'SF Pro Text',
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? const Color(0xFF0071E3) : inkColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

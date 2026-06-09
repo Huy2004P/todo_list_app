@@ -2,5 +2,7 @@ import 'package:flutter/material.dart';
 
 class ThemeState {
   final ThemeMode themeMode;
-  const ThemeState(this.themeMode);
+  final double textScaleFactor;
+
+  const ThemeState(this.themeMode, {this.textScaleFactor = 1.0});
 }
